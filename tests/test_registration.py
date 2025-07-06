@@ -44,3 +44,33 @@ def test_add_new_user(setup_database, connection):
 Тест аутентификации пользователя с неправильным паролем.
 Тест отображения списка пользователей.
 """
+
+def test_add_existing_user(setup_database, connection):
+    """Тест добавления пользователя с существующим логином."""
+    add_user('duplicateuser', 'dup@example.com', 'pass123')
+    result = add_user('duplicateuser', 'another@example.com', 'pass456')
+    assert result is False or result is None, "Добавление пользователя с существующим логином должно быть отклонено."
+
+def test_successful_authentication(setup_database):
+    """Тест успешной аутентификации пользователя."""
+    add_user('authuser', 'auth@example.com', 'authpass')
+    result = authenticate_user('authuser', 'authpass')
+    assert result is True, "Аутентификация с правильными данными должна пройти успешно."
+
+def test_authentication_nonexistent_user(setup_database):
+    """Тест аутентификации несуществующего пользователя."""
+    result = authenticate_user('ghostuser', 'nopass')
+    assert result is False, "Аутентификация несуществующего пользователя должна возвращать False."
+
+def test_authentication_wrong_password(setup_database):
+    """Тест аутентификации пользователя с неправильным паролем."""
+    add_user('realuser', 'real@example.com', 'realpass')
+    result = authenticate_user('realuser', 'wrongpass')
+    assert result is False, "Аутентификация с неправильным паролем должна возвращать False."
+
+def test_display_users_output(capsys, setup_database):
+    """Тест отображения списка пользователей."""
+    add_user('shownuser', 'shown@example.com', 'showpass')
+    display_users()
+    captured = capsys.readouterr()
+    assert 'shownuser' in captured.out, "Список пользователей должен содержать добавленного пользователя."
